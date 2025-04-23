@@ -6,8 +6,10 @@
 import tkinter as tk
 from tkinter import ttk
 import psutil
+import tkinter.font as tkFont
 import os
 from database import MenuDatabase
+from tkinter.colorchooser import askcolor
 
 class POSApp:
     def __init__(self, root):
@@ -25,6 +27,7 @@ class POSApp:
         self.frame_checkout = tk.Frame(root)
         self.frame_settings = tk.Frame(root)
         self.frame_stocks = tk.Frame(root)
+        self.frame_add_item = tk.Frame(root)
 
         # Pack layout for all frames, stacking them vertically or horizontally
         self.frame_login.pack(fill="both", expand=True)
@@ -32,6 +35,7 @@ class POSApp:
         self.frame_checkout.pack(fill="both", expand=True)
         self.frame_settings.pack(fill="both", expand=True)
         self.frame_stocks.pack(fill="both", expand=True)
+        self.frame_add_item.pack(fill="both", expand=True)
 
         # Initialize all frames with content
         self.create_login_screen()
@@ -45,46 +49,32 @@ class POSApp:
 
 
 
-    def update_memory_usage(self):
-        try:
-            mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
-            self.memory_label.config(text=f"Memory used: {mem:.2f} MB")
-        except Exception as e:
-            self.memory_label.config(text=f"Error: {e}")
-        self.root.after(10000, self.update_memory_usage)  # run again after 1 second
+    # def update_memory_usage(self):
+    #     try:
+    #         mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
+    #         self.memory_label.config(text=f"Memory used: {mem:.2f} MB")
+    #     except Exception as e:
+    #         self.memory_label.config(text=f"Error: {e}")
+    #     # self.root.after(10000, self.update_memory_usage)  # run again after 1 second
 
-        print("here",mem)
+    #     print("here",mem)
 
 
-    def show_frame(self, frame):
+    def show_frame(self, frame_to_show):
         # Hide all frames
-        self.frame_login.pack_forget()
-        self.frame_menu.pack_forget()
-        self.frame_checkout.pack_forget()
-        self.frame_settings.pack_forget()
-        self.frame_stocks.pack_forget()
+
         
+        frames = (self.frame_login, self.frame_menu, self.frame_checkout, self.frame_settings, self.frame_stocks, self.frame_add_item)
+        for frame in frames:
+            frame.pack_forget()
         # Show the selected frame
-        frame.pack(fill="both", expand=True)
+        frame_to_show.pack(fill="both", expand=True)
 
     def _from_rgb(self, rgb):
         """translates an rgb tuple of int to a tkinter friendly color code
         """
         r, g, b = rgb
         return f'#{r:02x}{g:02x}{b:02x}'
-
-    def reset_window(self):
-        # Destroy all widgets inside the root window
-        for widget in self.root.winfo_children():
-            widget.destroy()
-        
-        # Re-initialize your frames or widgets
-        self.create_login_screen()
-        self.create_menu_screen()
-        self.create_checkout_screen()
-
-        # Show the login frame after reset
-        self.show_frame(self.frame_login)
 
     def create_login_screen(self):
         """Create the login screen."""
@@ -128,11 +118,32 @@ class POSApp:
         back_button.pack(pady=10)
 
     def create_stocks_screen(self):
-        data = [
-            ("1", "Alice", "Engineer"),
-            ("2", "Bob", "Doctor"),
-            ("3", "Charlie", "Teacher"),
-        ]
+
+        def treeview_sort_column(treeview, col, reverse):
+            # Get data from treeview
+            data = [(treeview.set(k, col), k) for k in treeview.get_children("")]
+
+            # Try to sort numerically if possible
+            try:
+                data.sort(key=lambda t: float(t[0]), reverse=reverse)
+            except ValueError:
+                data.sort(key=lambda t: t[0], reverse=reverse)
+
+            # Rearrange the items in sorted order
+            for index, (val, k) in enumerate(data):
+                treeview.move(k, "", index)
+
+            # Update the header text to show the appropriate arrow (or reset)
+            if reverse:
+                treeview.heading(col, text=f"{col} ↓", command=lambda: treeview_sort_column(treeview, col, False))
+            else:
+                treeview.heading(col, text=f"{col} ↑", command=lambda: treeview_sort_column(treeview, col, True))
+
+            # Reset other columns' headings (hide arrows) when they're not sorted
+            for other_col in treeview["columns"]:
+                if other_col != col:
+                    treeview.heading(other_col, text=other_col, command=lambda _col=other_col: treeview_sort_column(treeview, _col, False))
+
 
         def show_selected():
             selected_item = tree.focus()
@@ -140,15 +151,22 @@ class POSApp:
                 values = tree.item(selected_item, "values")
                 print("Selected Row:", values)
 
-        # Basic actions
-        def go_back():
-            print("Back pressed")
-
         def add_item():
-            print("Add pressed")
+            print("add pressed")
+            self.create_add_item_screen(mode="Add")
+            # when pressed opens a new frame with input and other related things.
 
         def edit_item():
-            print("Edit pressed")
+            values = None
+            selected_item = tree.focus()  # get currently selected item
+            if selected_item:
+                values = tree.item(selected_item, "values")
+                print("Selected Row:", values)
+            if values:
+                self.create_add_item_screen(mode="Edit", barcode=values[0])
+                print("Edit pressed")
+            else:
+                print("Not selected item")
 
         self.frame_stocks.grid_rowconfigure(1, weight=9)  # bottom 90%
         self.frame_stocks.grid_rowconfigure(0, weight=1)  # top 10%
@@ -186,24 +204,215 @@ class POSApp:
         tree_scroll_x = tk.Scrollbar(bottom_frame, orient="horizontal")
         tree_scroll_x.pack(side="bottom", fill="x")
 
+        stock_items = self.db.get_menu_items()
         tree = ttk.Treeview(
             bottom_frame,
-            columns=("ID", "Name", "Profession"),
+            columns=("Barcode", "Category", "Subcategory", "Name", "Price", "Stock", "Total Sold", "No-Stock", "Last Added", "First Added", "Notes"),
             show="headings",
             yscrollcommand=tree_scroll_y.set,
             xscrollcommand=tree_scroll_x.set
         )
-        tree.heading("ID", text="ID")
+
+        tree.heading("Barcode", text="Barcode")
+        tree.heading("Category", text="Category")
+        tree.heading("Subcategory", text="Subcategory")
         tree.heading("Name", text="Name")
-        tree.heading("Profession", text="Profession")
+        tree.heading("Price", text="Price")
+        tree.heading("Stock", text="Stock")
+        tree.heading("Total Sold", text="Total Sold")
+        tree.heading("No-Stock", text="No-Stock")
+        tree.heading("Last Added", text="Last Added")
+        tree.heading("First Added", text="First Added")
+        tree.heading("Notes", text="Notes")
+
 
         tree_scroll_y.config(command=tree.yview)
         tree_scroll_x.config(command=tree.xview)
 
         tree.pack(fill="both", expand=True)
 
-        for row in data:
+        for row in stock_items:
             tree.insert("", tk.END, values=row)
+
+        style = ttk.Style()
+        font_name = style.lookup("Treeview", "font")
+        font = tkFont.nametofont(font_name if font_name else "TkDefaultFont")
+
+        for col in tree["columns"]:
+            max_width = font.measure(col)
+            for item in tree.get_children():
+                text = str(tree.set(item, col))
+                max_width = max(max_width, font.measure(text))
+            tree.column(col, width=max_width + 20)  # add padding
+
+        for col in tree["columns"]:
+            tree.heading(col, text=col, command=lambda _col=col: treeview_sort_column(tree, _col, False))
+
+        # show sorted last added first
+        treeview_sort_column(tree, "Last Added", False)
+
+    def create_add_item_screen(self, mode: str, barcode=None):
+        self.show_frame(self.frame_add_item)
+        
+        def go_back():
+            print("Back button pressed!")
+            self.show_frame(self.frame_stocks)
+            for widget in self.frame_add_item.winfo_children():
+                widget.destroy()
+
+        def choose_fg_color():
+            color = askcolor()[1]
+            if color:
+                print(f"Selected Foreground Color: {color}")
+                no_action_button.config(fg=color)
+
+        def choose_bg_color():
+            color = askcolor()[1]
+            if color:
+                print(f"Selected Background Color: {color}")
+                no_action_button.config(bg=color)
+
+        def add_item():
+            # Here you would gather the input values and perform an action (e.g., save to database)
+            print("Add Item clicked!")
+            print(f"Category: {self.category_combobox.get()}")
+            print(f"Subcategory: {self.subcategory_combobox.get()}")
+            print(f"Barcode: {self.barcode_entry.get()}")
+            print(f"Name: {self.name_entry.get()}")
+            print(f"Price: {self.price_entry.get()}")
+            print(f"Stock: {self.stock_entry.get()}")
+            print(f"Notes: {self.notes_entry.get()}")
+            print(f"No Stock: {self.no_stock_var.get()}")
+
+        def update_subcategories(event=None):
+            selected_name = self.category_combobox.get()
+            category_id = self.category_dict.get(selected_name)
+
+            if category_id is not None:
+                subcat_data = self.db.get_subcat_from_cat(category_id)
+                subcategories = [row[0] for row in subcat_data]
+                self.subcategory_combobox["values"] = subcategories
+                self.subcategory_combobox.set("")  # Clear current selection
+
+        def update_no_action_button(*args):
+            no_action_button.config(text=self.name_var.get())
+
+
+        self.frame = tk.Frame(self.frame_add_item)
+        self.frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Top Frame (Back button and Add Item label)
+        top_frame = tk.Frame(self.frame)
+        top_frame.pack(fill="x", pady=10)
+
+        back_button = tk.Button(top_frame, text="Back", command=go_back)
+        back_button.pack(side="left")
+
+        label_add_item = tk.Label(top_frame, text="Add Item", font=("Arial", 18))
+        label_add_item.pack(side="left", padx=50)
+
+        # Form Frame (category, subcategory, barcode, etc.)
+        form_frame = tk.Frame(self.frame)
+        form_frame.pack(fill="both", expand=True, pady=20)
+
+        # Category Dropdown
+        category_list = self.db.get_categories()  # Assuming it returns [(1, "Food"), (2, "Drinks"), ...]
+        self.category_dict = {row[1]: row[0] for row in category_list}
+        only_name_category = [name[1] for name in category_list]
+
+
+        label_category = tk.Label(form_frame, text="Category:")
+        label_category.grid(row=0, column=0, sticky="w", pady=5)
+        self.category_combobox = ttk.Combobox(form_frame, values=only_name_category, state="readonly")
+        self.category_combobox.grid(row=0, column=1, padx=10, pady=5)
+        self.category_combobox.bind("<<ComboboxSelected>>", update_subcategories)
+
+
+        label_subcategory = tk.Label(form_frame, text="Subcategory:")
+        label_subcategory.grid(row=1, column=0, sticky="w", pady=5)
+        self.subcategory_combobox = ttk.Combobox(form_frame, values=["Choose a category"])
+        self.subcategory_combobox.grid(row=1, column=1, padx=10, pady=5)
+
+        # Barcode Input
+        label_barcode = tk.Label(form_frame, text="Barcode:")
+        label_barcode.grid(row=2, column=0, sticky="w", pady=5)
+        self.barcode_entry = ttk.Entry(form_frame)
+        self.barcode_entry.grid(row=2, column=1, padx=10, pady=5)
+
+        self.name_var = tk.StringVar()
+        # Name Input
+        label_name = tk.Label(form_frame, text="Name:")
+        label_name.grid(row=3, column=0, sticky="w", pady=5)
+        self.name_entry = ttk.Entry(form_frame, textvariable=self.name_var)
+        self.name_entry.grid(row=3, column=1, padx=10, pady=5)
+        self.name_var.trace_add("write", update_no_action_button)
+
+        # Price Input
+        label_price = tk.Label(form_frame, text="Price:")
+        label_price.grid(row=4, column=0, sticky="w", pady=5)
+        self.price_entry = ttk.Entry(form_frame)
+        self.price_entry.grid(row=4, column=1, padx=10, pady=5)
+
+        # Stock Input
+        label_stock = tk.Label(form_frame, text="Stock:")
+        label_stock.grid(row=5, column=0, sticky="w", pady=5)
+        self.stock_entry = ttk.Entry(form_frame)
+        self.stock_entry.grid(row=5, column=1, padx=10, pady=5)
+
+        # Notes Input
+        label_notes = tk.Label(form_frame, text="Notes:")
+        label_notes.grid(row=6, column=0, sticky="w", pady=5)
+        self.notes_entry = ttk.Entry(form_frame)
+        self.notes_entry.grid(row=6, column=1, padx=10, pady=5)
+
+        # No-Stock Checkbox
+        self.no_stock_var = tk.BooleanVar()
+        self.no_stock_checkbox = tk.Checkbutton(form_frame, text="No Stock", variable=self.no_stock_var)
+        self.no_stock_checkbox.grid(row=7, column=0, columnspan=2, pady=10)
+
+        # Foreground Color Picker
+        label_fg_color = tk.Label(form_frame, text="Foreground Color:")
+        label_fg_color.grid(row=8, column=0, sticky="w", pady=5)
+        self.foreground_button = tk.Button(form_frame, text="Pick Color", command=choose_fg_color)
+        self.foreground_button.grid(row=8, column=1, padx=10, pady=5)
+
+        # Background Color Picker
+        label_bg_color = tk.Label(form_frame, text="Background Color:")
+        label_bg_color.grid(row=9, column=0, sticky="w", pady=5)
+        self.background_button = tk.Button(form_frame, text="Pick Color", command=choose_bg_color)
+        self.background_button.grid(row=9, column=1, padx=10, pady=5)
+
+        # No Action Button
+        no_action_button = tk.Button(form_frame, text="Add Name", padx=10, pady=10, borderwidth=0, relief="solid", width=10,height=2, background="#E5E5E5",foreground="black",font=("Arial", 18))
+        no_action_button.grid(row=10, column=0, columnspan=5, pady=20)
+
+        # Add Button (at the bottom)
+        add_button = tk.Button(self.frame, text="Add", command=add_item)
+        add_button.pack(pady=10)
+
+        if mode == "Edit":
+            print("Edit mode")
+            print(barcode)
+
+            edit_item_data = self.db.get_specific_menu_item(barcode)
+            self.category_combobox.set(edit_item_data[1])
+            self.subcategory_combobox.set(edit_item_data[2])
+            self.name_var.set(edit_item_data[3])
+            self.price_entry.insert(0, edit_item_data[4])
+            self.stock_entry.insert(0, edit_item_data[5])
+            self.notes_entry.insert(0, edit_item_data[10]) 
+            self.barcode_entry.insert(0, barcode)
+            no_action_button.config(bg=edit_item_data[11], fg=edit_item_data[12])
+
+            if edit_item_data[7] == "True":
+                self.no_stock_var.set(True)
+            elif edit_item_data[7] == "False":
+                self.no_stock_var.set(False)
+
+
+        elif mode == "Add":
+            print("add mode")
+        
 
 
     def create_settings_screen(self):
@@ -402,8 +611,8 @@ class POSApp:
         right_section.grid(row=2, column=1, sticky="nsew")
 
 
-        self.memory_label = tk.Label(top_section, text="Memory used: -- MB", font=("Helvetica", 16))
-        self.memory_label.pack()
+        # self.memory_label = tk.Label(top_section, text="Memory used: -- MB", font=("Helvetica", 16))
+        # self.memory_label.pack()
 
 
 
@@ -505,6 +714,6 @@ root = tk.Tk()
 root.geometry("1366x768")
 app = POSApp(root)
 
-app.update_memory_usage()
+# app.update_memory_usage()
 # Start the main event loop
 root.mainloop()

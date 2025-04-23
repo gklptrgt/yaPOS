@@ -33,10 +33,17 @@ class MenuDatabase:
         CREATE TABLE IF NOT EXISTS menu_items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             subcategory_id INTEGER NOT NULL,
+            barcode TEXT NOT NULL,
             name TEXT NOT NULL,
             price REAL NOT NULL,
-            background_color TEXT,
-            foreground_color TEXT,
+            stock REAL NOT NULL,
+            total_sold REAL NOT NULL,
+            no_stock TEXT NOT NULL,
+            last_added TEXT NOT NULL,
+            firt_added TEXT NOT NULL,
+            notes TEXT NOT NULL,
+            background_color TEXT NOT NULL,
+            foreground_color TEXT NOT NULL,
             FOREIGN KEY (subcategory_id) REFERENCES subcategories(id)
         )
         """)
@@ -104,34 +111,107 @@ class MenuDatabase:
         self.close()
         return self.cursor.lastrowid
 
-    def insert_menu_item(self, subcategory_name, name, price, background_color=None, foreground_color=None):
-        self.connect()
+    # def insert_menu_item(self, subcategory_name, name, price, background_color=None, foreground_color=None):
+    #     self.connect()
 
-        self.cursor.execute("SELECT id FROM subcategories WHERE name = ?", (subcategory_name,))
-        result = self.cursor.fetchone()
-        if result:
-            subcategory_id = result[0]
-            self.cursor.execute("""
-                INSERT INTO menu_items (subcategory_id, name, price, background_color, foreground_color)
-                VALUES (?, ?, ?, ?, ?)
-            """, (subcategory_id, name, price, background_color, foreground_color))
-            self.conn.commit()
+    #     self.cursor.execute("SELECT id FROM subcategories WHERE name = ?", (subcategory_name,))
+    #     result = self.cursor.fetchone()
+    #     if result:
+    #         subcategory_id = result[0]
+    #         self.cursor.execute("""
+    #             INSERT INTO menu_items (subcategory_id, name, price, background_color, foreground_color)
+    #             VALUES (?, ?, ?, ?, ?)
+    #         """, (subcategory_id, name, price, background_color, foreground_color))
+    #         self.conn.commit()
             
-            self.close()
-            return self.cursor.lastrowid
-        else:
-            self.close()
-            raise ValueError(f"Subcategory '{subcategory_name}' not found.")
+    #         self.close()
+    #         return self.cursor.lastrowid
+    #     else:
+    #         self.close()
+    #         raise ValueError(f"Subcategory '{subcategory_name}' not found.")
         
 
     def get_categories(self):
         self.connect()
 
-        self.cursor.execute("SELECT name, background_color, foreground_color FROM categories")
+        self.cursor.execute("SELECT id, name, background_color, foreground_color FROM categories")
         result = self.cursor.fetchall()
         
         self.close()
         return result
+    
+    def get_subcat_from_cat(self, cat_id):
+        self.connect()
 
+        self.cursor.execute("SELECT name FROM subcategories WHERE category_id = ?", (cat_id,))
+        result = self.cursor.fetchall()
+        
+        self.close()
+        return result
+    
+    def get_menu_items(self):
+        self.connect()
+        
+        query = """
+        SELECT 
+            menu_items.barcode,
+            categories.name AS category_name,
+            subcategories.name AS subcategory_name,
+            menu_items.name,
+            menu_items.price,
+            menu_items.stock,
+            menu_items.total_sold,
+            menu_items.no_stock,
+            menu_items.last_added,
+            menu_items.firt_added,
+            menu_items.notes,
+            menu_items.background_color,
+            menu_items.foreground_color
+
+        FROM menu_items
+        JOIN subcategories ON menu_items.subcategory_id = subcategories.id
+        JOIN categories ON subcategories.category_id = categories.id
+        """
+        self.cursor.execute(query)
+        result = self.cursor.fetchall()
+        self.close()
+        return result
+    
+    def get_specific_menu_item(self, barcode):
+        self.connect()
+        query = """
+        SELECT 
+            menu_items.barcode,
+            categories.name AS category_name,
+            subcategories.name AS subcategory_name,
+            menu_items.name,
+            menu_items.price,
+            menu_items.stock,
+            menu_items.total_sold,
+            menu_items.no_stock,
+            menu_items.last_added,
+            menu_items.firt_added,
+            menu_items.notes,
+            menu_items.background_color,
+            menu_items.foreground_color
+
+        FROM menu_items
+        JOIN subcategories ON menu_items.subcategory_id = subcategories.id
+        JOIN categories ON subcategories.category_id = categories.id
+        WHERE menu_items.barcode = ?
+        """
+        self.cursor.execute(query, (barcode,))
+        result = self.cursor.fetchone()
+        self.close()
+        return result
+
+
+            
     def close(self):
         self.conn.close()
+
+
+if __name__ == "__main__":
+    db = MenuDatabase()
+
+    print(db.get_specific_menu_item("12313131231"))
