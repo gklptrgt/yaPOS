@@ -179,11 +179,27 @@ class POSApp:
         bottom_frame = tk.Frame(self.frame_stocks)
         bottom_frame.grid(row=1, column=0, sticky="nsew")
 
-        # Treeview (DataTable)
-        tree = ttk.Treeview(bottom_frame, columns=("ID", "Name", "Profession"), show="headings")
+        # Treeview (DataTable) with Scrollbars
+        tree_scroll_y = tk.Scrollbar(bottom_frame, orient="vertical")
+        tree_scroll_y.pack(side="right", fill="y")
+
+        tree_scroll_x = tk.Scrollbar(bottom_frame, orient="horizontal")
+        tree_scroll_x.pack(side="bottom", fill="x")
+
+        tree = ttk.Treeview(
+            bottom_frame,
+            columns=("ID", "Name", "Profession"),
+            show="headings",
+            yscrollcommand=tree_scroll_y.set,
+            xscrollcommand=tree_scroll_x.set
+        )
         tree.heading("ID", text="ID")
         tree.heading("Name", text="Name")
         tree.heading("Profession", text="Profession")
+
+        tree_scroll_y.config(command=tree.yview)
+        tree_scroll_x.config(command=tree.xview)
+
         tree.pack(fill="both", expand=True)
 
         for row in data:
