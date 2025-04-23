@@ -4,6 +4,7 @@
 # Ctrl+F check TODO
 
 import tkinter as tk
+from tkinter import ttk
 import psutil
 import os
 from database import MenuDatabase
@@ -23,18 +24,21 @@ class POSApp:
         self.frame_menu = tk.Frame(root)
         self.frame_checkout = tk.Frame(root)
         self.frame_settings = tk.Frame(root)
+        self.frame_stocks = tk.Frame(root)
 
         # Pack layout for all frames, stacking them vertically or horizontally
         self.frame_login.pack(fill="both", expand=True)
         self.frame_menu.pack(fill="both", expand=True)
         self.frame_checkout.pack(fill="both", expand=True)
         self.frame_settings.pack(fill="both", expand=True)
+        self.frame_stocks.pack(fill="both", expand=True)
 
         # Initialize all frames with content
         self.create_login_screen()
         self.create_menu_screen()
         self.create_checkout_screen()
         self.create_settings_screen()
+        self.create_stocks_screen()
 
         # Start on the login screen
         self.show_frame(self.frame_login)
@@ -58,6 +62,7 @@ class POSApp:
         self.frame_menu.pack_forget()
         self.frame_checkout.pack_forget()
         self.frame_settings.pack_forget()
+        self.frame_stocks.pack_forget()
         
         # Show the selected frame
         frame.pack(fill="both", expand=True)
@@ -109,6 +114,11 @@ class POSApp:
         sale_button = tk.Button(self.frame_menu, text="Start Sale", command=lambda: self.show_frame(self.frame_checkout))
         sale_button.pack(pady=10)
 
+        # Button to go Stocks
+        stock_button = tk.Button(self.frame_menu, text="Stocks", command=lambda: self.show_frame(self.frame_stocks))
+        stock_button.pack(pady=10)
+        
+
         # Button to go Settings screen
         settings_button = tk.Button(self.frame_menu, text="Settings", command=lambda: self.show_frame(self.frame_settings))
         settings_button.pack(pady=10)
@@ -116,6 +126,69 @@ class POSApp:
         # Button to go back to login screen
         back_button = tk.Button(self.frame_menu, text="Logout", command=lambda: self.show_frame(self.frame_login))
         back_button.pack(pady=10)
+
+    def create_stocks_screen(self):
+        data = [
+            ("1", "Alice", "Engineer"),
+            ("2", "Bob", "Doctor"),
+            ("3", "Charlie", "Teacher"),
+        ]
+
+        def show_selected():
+            selected_item = tree.focus()
+            if selected_item:
+                values = tree.item(selected_item, "values")
+                print("Selected Row:", values)
+
+        # Basic actions
+        def go_back():
+            print("Back pressed")
+
+        def add_item():
+            print("Add pressed")
+
+        def edit_item():
+            print("Edit pressed")
+
+        self.frame_stocks.grid_rowconfigure(1, weight=9)  # bottom 90%
+        self.frame_stocks.grid_rowconfigure(0, weight=1)  # top 10%
+        self.frame_stocks.grid_columnconfigure(0, weight=1)
+
+        # Top frame (10%)
+        top_frame = tk.Frame(self.frame_stocks)
+        top_frame.grid(row=0, column=0, sticky="nsew")
+        top_frame.grid_columnconfigure(0, weight=1)
+        top_frame.grid_columnconfigure(1, weight=1)
+        top_frame.grid_columnconfigure(2, weight=1)
+
+        # Left: Back button
+        back_btn = tk.Button(top_frame, text="Back", command=lambda: self.show_frame(self.frame_menu))
+        back_btn.grid(row=0, column=0, sticky="w", padx=10, pady=10)
+
+        # Center: Total items label
+        total_label = tk.Label(top_frame, text="Total Items: 100", font=("Arial", 12, "bold"))
+        total_label.grid(row=0, column=1)
+
+        # Right: Add and Edit buttons
+        right_buttons = tk.Frame(top_frame)
+        right_buttons.grid(row=0, column=2, sticky="e", padx=10)
+        tk.Button(right_buttons, text="Add", command=add_item).pack(side="left", padx=5)
+        tk.Button(right_buttons, text="Edit", command=edit_item).pack(side="left")
+
+        # Bottom frame (90%)
+        bottom_frame = tk.Frame(self.frame_stocks)
+        bottom_frame.grid(row=1, column=0, sticky="nsew")
+
+        # Treeview (DataTable)
+        tree = ttk.Treeview(bottom_frame, columns=("ID", "Name", "Profession"), show="headings")
+        tree.heading("ID", text="ID")
+        tree.heading("Name", text="Name")
+        tree.heading("Profession", text="Profession")
+        tree.pack(fill="both", expand=True)
+
+        for row in data:
+            tree.insert("", tk.END, values=row)
+
 
     def create_settings_screen(self):
         """Create the settings screen"""
@@ -372,7 +445,7 @@ class POSApp:
         # Get Category for that shop from SQL
         
         dumb_cat = {'Kale Cafe':[('Soguk Icecekler',(0,0,255),(255,255,255)), ('Sicak Icecekler',(255,0,0),(255,255,255)),('Alkollu Icecekler',(125,125,0),(255,255,255)),('Yiyecekler',(123,34,232),(1,1,1)),('Salatalar',(100,44,9),(1,1,1)),('Ice Cream',(10,20,100),(1,1,1)),('Tatlilar',(23,234,11),(1,1,1)),('Snacks',(222,111,222),(1,1,1))],
-                    'Hediyelik':[('Hediyelik',(0,0,255),(255,255,255)),('Canta ve Cuzdan',(0,0,255),(255,255,255)),('Kulluk',(0,0,255),(255,255,255)),('Tabak',(0,0,255),(255,255,255)),('Bardak',(0,0,255),(255,255,255)),('Mumluk',(0,0,255),(255,255,255)),('Maketler (Mucahit Kaya)',(0,0,255),(255,255,255)),('Kilim (Carpet)',(222,111,222),(1,1,1))]}
+                    'Hediyelik':[('Hediyelik',(0,0,255),(255,255,255)),('Canta ve Cuzdan',(0,0,255),(255,255,255)),('Kulluk',(0,0,255),(255,255,255)),('Tabak',(0,0,255),(255,255,255)),('Bardak',(0,0,255),(255,255,255))]}
         
         target_data = dumb_cat.get(shop, [])
         self.selected_cat_button = None
