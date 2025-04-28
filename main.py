@@ -16,7 +16,7 @@ class POSApp:
         self.db = MenuDatabase()
 
         self.root = root
-        
+    
         self.root_width = 1366
         self.root_height = 768
         self.root.title("POS System")
@@ -141,7 +141,7 @@ class POSApp:
 
         def add_item():
             print("add pressed")
-            self.create_add_item_screen(mode="Add")
+            self.create_add_item_screen(current_mode="Add")
             # when pressed opens a new frame with input and other related things.
 
         def edit_item():
@@ -151,7 +151,7 @@ class POSApp:
                 values = tree.item(selected_item, "values")
                 print("Selected Row:", values)
             if values:
-                self.create_add_item_screen(mode="Edit", barcode=values[0])
+                self.create_add_item_screen(current_mode="Edit", barcode=values[0])
                 print("Edit pressed")
             else:
                 print("Not selected item")
@@ -239,8 +239,10 @@ class POSApp:
         # show sorted last added first
         treeview_sort_column(tree, "Last Added", False)
 
-    def create_add_item_screen(self, mode: str, barcode=None):
+    def create_add_item_screen(self, current_mode: str, barcode=None):
         self.show_frame(self.frame_add_item)
+        self.bg_color = "#E5E5E5" # default value
+        self.fg_color = "#000000" # default value
         
         def go_back():
             print("Back button pressed!")
@@ -253,24 +255,111 @@ class POSApp:
             if color:
                 print(f"Selected Foreground Color: {color}")
                 no_action_button.config(fg=color)
+                self.fg_color = color
 
         def choose_bg_color():
             color = askcolor()[1]
             if color:
                 print(f"Selected Background Color: {color}")
                 no_action_button.config(bg=color)
+                self.bg_color = color
+
+        def check_upload_data(data):
+            # checks upload data if any is empty, adds error label to that section.
+            is_error = None
+            for key, value in data.items():
+                if value in (None, "", []):
+
+                    if key == "cat":
+                        self.category_error_label.grid(row=0, column=2, padx=10, pady=5)
+                    if key == "subcat":
+                        self.subcategory_error_label.grid(row=1, column=2, padx=10, pady=5)
+                    if key == "barcode":
+                        self.barcode_error_empty_label.grid(row=2, column=2, padx=10, pady=5)
+                    if key == "name":
+                        self.name_error_label.grid(row=3, column=2, padx=10, pady=5)
+                    if key == "price":
+                        self.price_error_label.grid(row=4, column=2, padx=10, pady=5)
+                    if key == "stock":
+                        self.stock_error_label.grid(row=5, column=2, padx=10, pady=5)
+                    if key == "notes":
+                        continue
+
+                    print(f"Error: '{key}' is empty.")
+                    is_error = True
+            if is_error:
+                return False
+            else:
+                return True
+            
+        def check_barcode_exists(barcode):
+            value = self.db.get_barcode(barcode)
+            if value:
+                return True
+            else:
+                return False
 
         def add_item():
             # Here you would gather the input values and perform an action (e.g., save to database)
-            print("Add Item clicked!")
-            print(f"Category: {self.category_combobox.get()}")
-            print(f"Subcategory: {self.subcategory_combobox.get()}")
-            print(f"Barcode: {self.barcode_entry.get()}")
-            print(f"Name: {self.name_entry.get()}")
-            print(f"Price: {self.price_entry.get()}")
-            print(f"Stock: {self.stock_entry.get()}")
-            print(f"Notes: {self.notes_entry.get()}")
-            print(f"No Stock: {self.no_stock_var.get()}")
+            # Here is the upload function.
+            # We check few things, there should ne no same barcode before.
+            # no tables should be empty.
+            self.category_error_label.grid_forget()
+            self.subcategory_error_label.grid_forget()
+            self.barcode_error_empty_label.grid_forget()
+            self.name_error_label.grid_forget()
+            self.price_error_label.grid_forget()
+            self.stock_error_label.grid_forget()
+            self.barcode_error_exists_label.grid_forget()
+            
+            # Check if tables are empty, if so add warning label next to them.
+            upload_data = dict()
+            upload_data['cat'] = self.category_combobox.get()
+            upload_data['subcat'] = self.subcategory_combobox.get()
+            upload_data['barcode'] = self.barcode_entry.get()
+            upload_data['name'] = self.name_entry.get()
+            upload_data['price'] = self.price_entry.get()
+            upload_data['stock'] = self.stock_entry.get()
+            upload_data['notes'] = self.notes_entry.get()
+            upload_data['no-stock'] = self.no_stock_var.get()
+            upload_data['bg_color'] = self.bg_color
+            upload_data['fg_color'] = self.fg_color
+            print(current_mode)
+            if current_mode == "Add":
+
+                if check_upload_data(upload_data):
+                    print("Can Continue to add data it's not empty.")
+                    if check_barcode_exists(upload_data['barcode']):
+                        # means exists should not continue
+                        self.barcode_error_exists_label.grid(row=2, column=2, padx=10, pady=5)
+                        print("barcode exists")
+                    else:
+                        print(upload_data)
+                        self.db.insert_new_menu_item(upload_data)
+                        
+                        for widget in self.frame_stocks.winfo_children():
+                            widget.destroy()
+
+                        for widget in self.frame_add_item.winfo_children():
+                            widget.destroy()
+
+                        self.create_stocks_screen()
+                        self.show_frame(self.frame_stocks)
+
+                else:
+                    print("It's empty")
+
+            else:
+                self.db.update_menu_item(upload_data)
+                for widget in self.frame_stocks.winfo_children():
+                    widget.destroy()
+
+                for widget in self.frame_add_item.winfo_children():
+                    widget.destroy()
+
+                self.create_stocks_screen()
+                self.show_frame(self.frame_stocks)
+
 
         def update_subcategories(event=None):
             selected_name = self.category_combobox.get()
@@ -295,8 +384,12 @@ class POSApp:
 
         back_button = tk.Button(top_frame, text="Back", command=go_back)
         back_button.pack(side="left")
-
-        label_add_item = tk.Label(top_frame, text="Add Item", font=("Arial", 18))
+        
+        if current_mode == "Add":
+            title_text = "Add Item"
+        else:
+            title_text = "Edit Item"
+        label_add_item = tk.Label(top_frame, text=title_text, font=("Arial", 18))
         label_add_item.pack(side="left", padx=50)
 
         # Form Frame (category, subcategory, barcode, etc.)
@@ -308,18 +401,21 @@ class POSApp:
         self.category_dict = {row[1]: row[0] for row in category_list}
         only_name_category = [name[1] for name in category_list]
 
-
         label_category = tk.Label(form_frame, text="Category:")
         label_category.grid(row=0, column=0, sticky="w", pady=5)
         self.category_combobox = ttk.Combobox(form_frame, values=only_name_category, state="readonly")
         self.category_combobox.grid(row=0, column=1, padx=10, pady=5)
         self.category_combobox.bind("<<ComboboxSelected>>", update_subcategories)
-
+        
+        self.category_error_label = tk.Label(form_frame, text="Category cannot be empty!", foreground='red')
 
         label_subcategory = tk.Label(form_frame, text="Subcategory:")
         label_subcategory.grid(row=1, column=0, sticky="w", pady=5)
         self.subcategory_combobox = ttk.Combobox(form_frame, values=["Choose a category"])
         self.subcategory_combobox.grid(row=1, column=1, padx=10, pady=5)
+
+
+        self.subcategory_error_label = tk.Label(form_frame, text="Subcategory cannot be empty!", foreground='red')
 
         # Barcode Input
         label_barcode = tk.Label(form_frame, text="Barcode:")
@@ -327,13 +423,20 @@ class POSApp:
         self.barcode_entry = ttk.Entry(form_frame)
         self.barcode_entry.grid(row=2, column=1, padx=10, pady=5)
 
-        self.name_var = tk.StringVar()
+        self.barcode_error_empty_label = tk.Label(form_frame, text="Barcode cannot be empty!", foreground='red')
+        self.barcode_error_exists_label = tk.Label(form_frame, text="Barcode already exists!", foreground='orange') # this is for checking is barcode exists already.
+
+
         # Name Input
+        self.name_var = tk.StringVar()
+
         label_name = tk.Label(form_frame, text="Name:")
         label_name.grid(row=3, column=0, sticky="w", pady=5)
         self.name_entry = ttk.Entry(form_frame, textvariable=self.name_var)
         self.name_entry.grid(row=3, column=1, padx=10, pady=5)
         self.name_var.trace_add("write", update_no_action_button)
+
+        self.name_error_label = tk.Label(form_frame, text="Name cannot be empty!", foreground='red')
 
         # Price Input
         label_price = tk.Label(form_frame, text="Price:")
@@ -341,11 +444,17 @@ class POSApp:
         self.price_entry = ttk.Entry(form_frame)
         self.price_entry.grid(row=4, column=1, padx=10, pady=5)
 
+        self.price_error_label = tk.Label(form_frame, text="Price cannot be empty!", foreground='red')
+
         # Stock Input
         label_stock = tk.Label(form_frame, text="Stock:")
         label_stock.grid(row=5, column=0, sticky="w", pady=5)
         self.stock_entry = ttk.Entry(form_frame)
         self.stock_entry.grid(row=5, column=1, padx=10, pady=5)
+
+        self.stock_error_label = tk.Label(form_frame, text="Stock cannot be empty!", foreground='red')
+        # stock values current: new: should be here
+
 
         # Notes Input
         label_notes = tk.Label(form_frame, text="Notes:")
@@ -371,14 +480,14 @@ class POSApp:
         self.background_button.grid(row=9, column=1, padx=10, pady=5)
 
         # No Action Button
-        no_action_button = tk.Button(form_frame, text="Add Name", padx=10, pady=10, borderwidth=0, relief="solid", width=10,height=2, background="#E5E5E5",foreground="black",font=("Arial", 18))
+        no_action_button = tk.Button(form_frame, text="Add Name", padx=10, pady=10, borderwidth=0, relief="solid", width=10,height=2, background=self.bg_color,foreground=self.fg_color,font=("Arial", 18))
         no_action_button.grid(row=10, column=0, columnspan=5, pady=20)
 
         # Add Button (at the bottom)
-        add_button = tk.Button(self.frame, text="Add", command=add_item)
+        add_button = tk.Button(self.frame, text="Save", command=add_item)
         add_button.pack(pady=10)
 
-        if mode == "Edit":
+        if current_mode == "Edit":
             print("Edit mode")
             print(barcode)
 
@@ -398,7 +507,7 @@ class POSApp:
                 self.no_stock_var.set(False)
 
 
-        elif mode == "Add":
+        elif current_mode == "Add":
             print("add mode")
         
 

@@ -40,7 +40,7 @@ class MenuDatabase:
             total_sold REAL NOT NULL,
             no_stock TEXT NOT NULL,
             last_added TEXT NOT NULL,
-            firt_added TEXT NOT NULL,
+            first_added TEXT NOT NULL,
             notes TEXT NOT NULL,
             background_color TEXT NOT NULL,
             foreground_color TEXT NOT NULL,
@@ -184,8 +184,85 @@ class MenuDatabase:
         result = self.cursor.fetchone()
         self.close()
         return result
+    
+    def insert_new_menu_item(self, data):
+        """Data is given in dict format, processed here and uploaded to db."""
+        self.connect()
 
+        self.cursor.execute("""
+            SELECT id FROM categories WHERE name = ?
+        """, (data['cat'],))
+        category_id = self.cursor.fetchone()[0]
 
+        self.cursor.execute("""
+            SELECT id FROM subcategories WHERE name = ? AND category_id = ?
+        """, (data['subcat'], category_id))
+        subcategory_id = self.cursor.fetchone()[0]
+
+        # Step 3: Insert menu item into the 'menu_items' table
+        self.cursor.execute("""
+            INSERT INTO menu_items 
+            (subcategory_id, barcode, name, price, stock, total_sold, no_stock, last_added, firt_added, notes, background_color, foreground_color) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            subcategory_id,
+            data['barcode'],
+            data['name'],
+            float(data['price']),
+            float(data['stock']),
+            0.0,  # Assuming `total_sold` is initially 0
+            'Yes' if data['no-stock'] else 'No',  # Converting boolean to string
+            '2025-04-28',  # Use current timestamp or a placeholder for 'last_added'
+            '2025-04-28',  # Use current timestamp or a placeholder for 'first_added'
+            data['notes'],
+            data['bg_color'],
+            data['fg_color']
+        ))
+        self.conn.commit()
+        print("Uploaded sucessfully")
+        self.close()
+    
+    def get_barcode(self, barcode):
+        self.connect()
+
+        query = """SELECT barcode FROM menu_items WHERE barcode = ?"""
+        self.cursor.execute(query, (barcode,))
+        result = self.cursor.fetchall()
+        self.close()
+        return result
+    
+    def update_menu_item(self, data):
+        """
+        Update a menu item in the database using barcode as the key.
+        `data` should be a dictionary containing the fields to update.
+        """
+        self.connect()
+        self.cursor.execute("""
+            UPDATE menu_items
+            SET
+                name = ?,
+                price = ?,
+                stock = ?,
+                notes = ?,
+                no_stock = ?,
+                background_color = ?,
+                foreground_color = ?,
+                last_added = ?
+            WHERE barcode = ?
+        """, (
+            data['name'],
+            data['price'],
+            data['stock'],
+            data.get('notes', ''),
+            'Yes' if data.get('no-stock', False) else 'No',
+            data.get('bg_color', '#FFFFFF'),
+            data.get('fg_color', '#000000'),
+            '2025-04-28',  # Example: you should use current timestamp
+            data['barcode']
+        ))
+
+        self.conn.commit()
+        self.close()
             
     def close(self):
         self.conn.close()
