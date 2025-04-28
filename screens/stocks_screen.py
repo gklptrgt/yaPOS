@@ -41,6 +41,22 @@ def create_stocks_screen(app):
         else:
             print("Not selected item")
 
+    def search_treeview(event=None):
+        # Get the search query from the entry widget
+        query = search_entry.get().lower()
+        # Clear the current Treeview
+        for item in tree.get_children():
+            tree.delete(item)
+        # Retrieve all stock items from the database
+        stock_items = app.db.get_menu_items()
+        # Filter items based on the search query
+        for row in stock_items:
+            # Search in specific columns (e.g., Barcode, Category, Name, Subcategory, Notes)
+            if any(query in str(value).lower() for value in row[:4] + (row[-1],)):
+                tree.insert("", tk.END, values=row)
+        # Update the total items label
+        total_label.config(text=f"Total Items: {len(tree.get_children())}")
+
     app.frame_stocks.grid_rowconfigure(1, weight=9)
     app.frame_stocks.grid_rowconfigure(0, weight=1)
     app.frame_stocks.grid_columnconfigure(0, weight=1)
@@ -51,11 +67,18 @@ def create_stocks_screen(app):
     top_frame.grid_columnconfigure(1, weight=1)
     top_frame.grid_columnconfigure(2, weight=1)
 
+    search_frame = tk.Frame(top_frame)
+    search_frame.grid(row=0, column=1, sticky="nsew", pady=10)
+    tk.Label(search_frame, text="Search:", font=("Arial", 12)).pack(side="left", padx=5)
+    search_entry = tk.Entry(search_frame, font=("Arial", 12))
+    search_entry.pack(side="left", fill="x", expand=True, padx=5)
+    search_entry.bind("<KeyRelease>", search_treeview)  # Bind key release to search function
+
     back_btn = tk.Button(top_frame, text="Back", command=lambda: app.show_frame(app.frame_menu))
     back_btn.grid(row=0, column=0, sticky="w", padx=10, pady=10)
 
     total_label = tk.Label(top_frame, text="Total Items: 100", font=("Arial", 12, "bold"))
-    total_label.grid(row=0, column=1)
+    total_label.grid(row=0, column=2)
 
     right_buttons = tk.Frame(top_frame)
     right_buttons.grid(row=0, column=2, sticky="e", padx=10)
@@ -115,3 +138,4 @@ def create_stocks_screen(app):
         tree.heading(col, text=col, command=lambda _col=col: treeview_sort_column(tree, _col, False))
 
     treeview_sort_column(tree, "Last Added", False)
+    total_label.config(text=f"Total Items: {len(tree.get_children())}")
