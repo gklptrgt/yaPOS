@@ -128,16 +128,20 @@ def create_settings_screen(app):
 
     save_button = MenuButton(buttons_frame, text="Save", state="disabled", command=lambda: save_exchange())
     save_button.pack(side='left', padx=10)
-    # print(app.width)
+    
+
+
     def disabled_menu_buttons():
         for name, btn in tab_buttons.items():
             btn.config(state='disabled')
 
-        
+        btn_back.config(state='disabled')
 
     def enable_menu_buttons():
         for name, btn in tab_buttons.items():
             btn.config(state='normal')
+
+        btn_back.config(state='normal')
 
     def edit_exchange():
         disabled_menu_buttons()
