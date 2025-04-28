@@ -19,7 +19,7 @@ if __name__ == "__main__":
     def hello_world():
         custom_button
 
-    custom_button = MenuButton(root, "Settings", hello_world, big=True)
+    custom_button = MenuButton(root, "0", hello_world)
     custom_button.pack()
 
     root.mainloop()

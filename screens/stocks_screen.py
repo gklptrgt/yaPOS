@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import tkinter.font as tkFont
+from widgets.menu_button import MenuButton
 
 def create_stocks_screen(app):
     def treeview_sort_column(treeview, col, reverse):
@@ -54,10 +55,7 @@ def create_stocks_screen(app):
             # Search in specific columns (e.g., Barcode, Category, Name, Subcategory, Notes)
             if any(query in str(value).lower() for value in row[:4] + (row[-1],)):
                 tree.insert("", tk.END, values=row)
-        # Update the total items label
-        total_label.config(text=f"Total Items: {len(tree.get_children())}")
-
-    app.frame_stocks.grid_rowconfigure(1, weight=9)
+    app.frame_stocks.grid_rowconfigure(1, weight=19)
     app.frame_stocks.grid_rowconfigure(0, weight=1)
     app.frame_stocks.grid_columnconfigure(0, weight=1)
 
@@ -68,22 +66,20 @@ def create_stocks_screen(app):
     top_frame.grid_columnconfigure(2, weight=1)
 
     search_frame = tk.Frame(top_frame)
-    search_frame.grid(row=0, column=1, sticky="nsew", pady=10)
-    tk.Label(search_frame, text="Search:", font=("Arial", 12)).pack(side="left", padx=5)
-    search_entry = tk.Entry(search_frame, font=("Arial", 12))
+    search_frame.grid(row=0, column=1, sticky="nsew")
+    tk.Label(search_frame, text="Search:", font=("Impact", 20)).pack(side="left", padx=5)
+    search_entry = tk.Entry(search_frame, font=("Impact", 20))
     search_entry.pack(side="left", fill="x", expand=True, padx=5)
     search_entry.bind("<KeyRelease>", search_treeview)  # Bind key release to search function
 
-    back_btn = tk.Button(top_frame, text="Back", command=lambda: app.show_frame(app.frame_menu))
+    back_btn = MenuButton(top_frame, text="Back",bg="#FFAEB5",command=lambda: app.show_frame(app.frame_menu))
     back_btn.grid(row=0, column=0, sticky="w", padx=10, pady=10)
-
-    total_label = tk.Label(top_frame, text="Total Items: 100", font=("Arial", 12, "bold"))
-    total_label.grid(row=0, column=2)
 
     right_buttons = tk.Frame(top_frame)
     right_buttons.grid(row=0, column=2, sticky="e", padx=10)
-    tk.Button(right_buttons, text="Add", command=add_item).pack(side="left", padx=5)
-    tk.Button(right_buttons, text="Edit", command=edit_item).pack(side="left")
+    MenuButton(right_buttons, text="Add Stock",bg="#FFF690", command=None).pack(side="left", padx=5)
+    MenuButton(right_buttons, text="New Item", command=add_item).pack(side="left", padx=5)
+    MenuButton(right_buttons, text="Edit Item", command=edit_item).pack(side="left")
 
     bottom_frame = tk.Frame(app.frame_stocks)
     bottom_frame.grid(row=1, column=0, sticky="nsew")
@@ -138,4 +134,3 @@ def create_stocks_screen(app):
         tree.heading(col, text=col, command=lambda _col=col: treeview_sort_column(tree, _col, False))
 
     treeview_sort_column(tree, "Last Added", False)
-    total_label.config(text=f"Total Items: {len(tree.get_children())}")

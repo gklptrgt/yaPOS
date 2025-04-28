@@ -1,18 +1,66 @@
 import tkinter as tk
+from widgets.numpad_button import NumpadButton
 
 def create_login_screen(app):
-    label = tk.Label(app.frame_login, text="Welcome to the POS System! Please Login.")
-    label.pack(pady=20)
+    global password_label, code
+    code = "" 
 
-    username_label = tk.Label(app.frame_login, text="Username:")
-    username_label.pack(padx=10, pady=5)
-    username_entry = tk.Entry(app.frame_login)
-    username_entry.pack(padx=10, pady=5)
+    def press_number(num):
+        global code
+        if len(code) < 4:
+            code += num
+            # Show * for each entered number
+            password_label.config(text="*" * len(code), fg="black")
 
-    password_label = tk.Label(app.frame_login, text="Password:")
-    password_label.pack(padx=10, pady=5)
-    password_entry = tk.Entry(app.frame_login, show="*")
-    password_entry.pack(padx=10, pady=5)
+        if len(code) == 4:
+            print("Code entered:", code)
+            if code == "0000":
+                print("Enter")
+                app.show_frame(app.frame_menu)
+                code = ""
+                password_label.config(text="",fg="black")
 
-    login_button = tk.Button(app.frame_login, text="Login", command=lambda: app.show_frame(app.frame_menu))
-    login_button.pack(pady=20)
+            else:
+                code = ""
+                password_label.config(text="XXX",fg="#FF413F")
+
+    # ===== Top Frame for Title and Subtitle =====
+    top_frame = tk.Frame(app.frame_login)
+    top_frame.pack(side=tk.TOP, pady=20)
+
+    # Title at top-center
+    title_label = tk.Label(top_frame, text="yaPOS", font=("Impact", 100, "bold"))
+    title_label.pack()
+
+    # Admin label under the title
+    admin_label = tk.Label(top_frame, text="yet another point-of-sale", font=("Arial", 22))
+    admin_label.pack()
+
+    # ===== Main Middle Frame =====
+    middle_frame = tk.Frame(app.frame_login)
+    middle_frame.pack(expand=True,fill="both")
+
+    # Right Frame for Numpad
+    right_frame = tk.Frame(middle_frame)
+    right_frame.pack(side="right",fill="both", expand=True, padx=50)
+
+    # Label above numpad (hidden initially)
+    password_label = tk.Label(right_frame, text="", font=("Impact", 100))
+    password_label.pack(pady=10)
+
+    # Frame for Numpad buttons
+    numpad_frame = tk.Frame(right_frame)
+    numpad_frame.pack()
+
+    # Create numpad buttons
+    buttons = [
+        ('1', 0, 0), ('2', 0, 1), ('3', 0, 2),
+        ('4', 1, 0), ('5', 1, 1), ('6', 1, 2),
+        ('7', 2, 0), ('8', 2, 1), ('9', 2, 2),
+        ('0', 3, 1),
+    ]
+
+    for (text, row, column) in buttons:
+        btn = NumpadButton(numpad_frame, text=text,command=lambda t=text: press_number(t))
+        btn.grid(row=row, column=column, padx=5, pady=5)
+
