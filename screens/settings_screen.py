@@ -1,13 +1,14 @@
 import tkinter as tk
+from widgets.menu_button import MenuButton
 
 def create_settings_screen(app):
     def show_frame(frame):
         frame.tkraise()
         for name, btn in tab_buttons.items():
             if name == frame:
-                btn.config(relief="sunken", bd=3, bg="lightblue")
+                btn.config(bd=1, bg="#ffa962")
             else:
-                btn.config(relief="raised", bd=1, bg="lightgrey")
+                btn.config(bd=1, bg="#bfbfbf")
 
     app.frame_settings.grid_columnconfigure(0, weight=1)
     app.frame_settings.grid_columnconfigure(1, weight=9)
@@ -24,9 +25,24 @@ def create_settings_screen(app):
     label = tk.Label(shop_page, text="TAB: SHOP", font=("Arial", 24))
     label.pack(expand=True)
 
+    tables_page = tk.Frame(right_frame, bg='orange')
+    tables_page.grid(row=0, column=0, sticky="nsew")
+    label = tk.Label(tables_page, text="TAB: Tables", font=("Arial", 24))
+    label.pack(expand=True)
+
     cat_page = tk.Frame(right_frame, bg='blue')
     cat_page.grid(row=0, column=0, sticky="nsew")
     label = tk.Label(cat_page, text="TAB: CATEGORY", font=("Arial", 24))
+    label.pack(expand=True)
+
+    subcat_page = tk.Frame(right_frame, bg='hotpink')
+    subcat_page.grid(row=0, column=0, sticky="nsew")
+    label = tk.Label(subcat_page, text="TAB: SUBCATEGORY", font=("Arial", 24))
+    label.pack(expand=True)
+
+    users_page = tk.Frame(right_frame, bg='black')
+    users_page.grid(row=0, column=0, sticky="nsew")
+    label = tk.Label(users_page, text="TAB: USERS", font=("Arial", 24))
     label.pack(expand=True)
 
     exchange_page = tk.Frame(right_frame)
@@ -35,17 +51,38 @@ def create_settings_screen(app):
     label.pack(expand=True)
 
     tab_buttons = {}
-    btn_shop = tk.Button(left_frame, height=2, text="Shop Settings", command=lambda: show_frame(shop_page))
+
+    settings_label = tk.Label(left_frame, text="Settings", font=("Impact", 50), bg="lightgray")
+    settings_label.pack(fill='x', padx=5, pady=5)
+
+    btn_shop = MenuButton(left_frame, text="Shop", command=lambda: show_frame(shop_page))
     btn_shop.pack(fill='x', padx=5, pady=5)
     tab_buttons[shop_page] = btn_shop
 
-    btn_cat = tk.Button(left_frame, height=2, text="Category Editing", command=lambda: show_frame(cat_page))
+    btn_tables = MenuButton(left_frame, text="Tables", command=lambda: show_frame(tables_page))
+    btn_tables.pack(fill='x', padx=5, pady=5)
+    tab_buttons[tables_page] = btn_tables
+
+    btn_cat = MenuButton(left_frame, text="Categories", command=lambda: show_frame(cat_page))
     btn_cat.pack(fill='x', padx=5, pady=5)
     tab_buttons[cat_page] = btn_cat
 
-    btn_exc = tk.Button(left_frame, height=2, text="Exchange Rates", command=lambda: show_frame(exchange_page))
+    btn_subcat = MenuButton(left_frame, text="Subcategories", command=lambda: show_frame(subcat_page))
+    btn_subcat.pack(fill='x', padx=5, pady=5)
+    tab_buttons[subcat_page] = btn_subcat
+
+    btn_users = MenuButton(left_frame, text="Users", command=lambda: show_frame(users_page))
+    btn_users.pack(fill='x', padx=5, pady=5)
+    tab_buttons[users_page] = btn_users
+    
+    btn_exc = MenuButton(left_frame, text="Exchange Rates", command=lambda: show_frame(exchange_page))
     btn_exc.pack(fill='x', padx=5, pady=5)
     tab_buttons[exchange_page] = btn_exc
+
+
+    btn_back = MenuButton(left_frame, text="Back", command=lambda: app.show_frame(app.frame_menu), bg="#FFAEB5")
+    btn_back.pack(fill='x', padx=5, pady=5)
+
 
     app.euro_var = tk.StringVar()
     app.dollar_var = tk.StringVar()
