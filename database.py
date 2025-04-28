@@ -109,27 +109,7 @@ class MenuDatabase:
         self.conn.commit()
         
         self.close()
-        return self.cursor.lastrowid
-
-    # def insert_menu_item(self, subcategory_name, name, price, background_color=None, foreground_color=None):
-    #     self.connect()
-
-    #     self.cursor.execute("SELECT id FROM subcategories WHERE name = ?", (subcategory_name,))
-    #     result = self.cursor.fetchone()
-    #     if result:
-    #         subcategory_id = result[0]
-    #         self.cursor.execute("""
-    #             INSERT INTO menu_items (subcategory_id, name, price, background_color, foreground_color)
-    #             VALUES (?, ?, ?, ?, ?)
-    #         """, (subcategory_id, name, price, background_color, foreground_color))
-    #         self.conn.commit()
-            
-    #         self.close()
-    #         return self.cursor.lastrowid
-    #     else:
-    #         self.close()
-    #         raise ValueError(f"Subcategory '{subcategory_name}' not found.")
-        
+        return self.cursor.lastrowid        
 
     def get_categories(self):
         self.connect()

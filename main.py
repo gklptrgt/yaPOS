@@ -1,15 +1,15 @@
 # Pareto Principle, roughly 20% of the workforce is responsible for accomplishing 80% of the work.
-# Work Hours: 6
+# Work Hours: 8
 # Version: 0.0.1
 # Ctrl+F check TODO
 
 import tkinter as tk
 from tkinter import ttk
-import psutil
 import tkinter.font as tkFont
 import os
 from database import MenuDatabase
 from tkinter.colorchooser import askcolor
+
 
 class POSApp:
     def __init__(self, root):
@@ -46,18 +46,6 @@ class POSApp:
 
         # Start on the login screen
         self.show_frame(self.frame_login)
-
-
-
-    # def update_memory_usage(self):
-    #     try:
-    #         mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
-    #         self.memory_label.config(text=f"Memory used: {mem:.2f} MB")
-    #     except Exception as e:
-    #         self.memory_label.config(text=f"Error: {e}")
-    #     # self.root.after(10000, self.update_memory_usage)  # run again after 1 second
-
-    #     print("here",mem)
 
 
     def show_frame(self, frame_to_show):
