@@ -47,7 +47,7 @@ def create_settings_screen(app):
 
     exchange_page = tk.Frame(right_frame)
     exchange_page.grid(row=0, column=0, sticky="nsew")
-    label = tk.Label(exchange_page, text="Exchange Rates", font=("Arial", 24))
+    label = tk.Label(exchange_page, text="Exchange Rates", font=("Impact", 30))
     label.pack(expand=True)
 
     tab_buttons = {}
@@ -97,40 +97,50 @@ def create_settings_screen(app):
         app.euro_var.set("1")
         app.dollar_var.set("1")
         app.sterlin_var.set("1")
-
+    
+    # Exchange Rate Settings
     row1 = tk.Frame(exchange_page)
     row1.pack(fill='x', pady=5)
-    label1 = tk.Label(row1, text="Dollar $", width=12, anchor='e')
+    label1 = tk.Label(row1, text="Dollar $", width=12, anchor='e', font=("Impact", 22))
     label1.pack(side='left')
-    dollar_entry = tk.Entry(row1, state="disabled", textvariable=app.dollar_var)
+    dollar_entry = tk.Entry(row1, state="disabled", textvariable=app.dollar_var, font=("Impact", 22))
     dollar_entry.pack(side='left', fill='x', expand=True)
 
     row2 = tk.Frame(exchange_page)
     row2.pack(fill='x', pady=5)
-    label2 = tk.Label(row2, text="Euro €", width=12, anchor='e')
+    label2 = tk.Label(row2, text="Euro €", width=12, anchor='e', font=("Impact", 22))
     label2.pack(side='left')
-    euro_entry = tk.Entry(row2, state="disabled", textvariable=app.euro_var)
+    euro_entry = tk.Entry(row2, state="disabled", textvariable=app.euro_var, font=("Impact", 22))
     euro_entry.pack(side='left', fill='x', expand=True)
 
     row3 = tk.Frame(exchange_page)
     row3.pack(fill='x', pady=5)
-    label3 = tk.Label(row3, text="Sterlin £", width=12, anchor='e')
+    label3 = tk.Label(row3, text="Sterlin £", width=12, anchor='e', font=("Impact", 22))
     label3.pack(side='left')
-    sterlin_entry = tk.Entry(row3, state="disabled", textvariable=app.sterlin_var)
+    sterlin_entry = tk.Entry(row3, state="disabled", textvariable=app.sterlin_var, font=("Impact", 22))
     sterlin_entry.pack(side='left', fill='x', expand=True)
 
     buttons_frame = tk.Frame(exchange_page)
     buttons_frame.pack(pady=20)
 
-    edit_button = tk.Button(buttons_frame, text="Edit", command=lambda: edit_exchange())
+    edit_button = MenuButton(buttons_frame, text="Edit", command=lambda: edit_exchange())
     edit_button.pack(side='left', padx=10)
 
-    save_button = tk.Button(buttons_frame, text="Save", state="disabled", command=lambda: save_exchange())
+    save_button = MenuButton(buttons_frame, text="Save", state="disabled", command=lambda: save_exchange())
     save_button.pack(side='left', padx=10)
-
-    def edit_exchange():
+    # print(app.width)
+    def disabled_menu_buttons():
         for name, btn in tab_buttons.items():
             btn.config(state='disabled')
+
+        
+
+    def enable_menu_buttons():
+        for name, btn in tab_buttons.items():
+            btn.config(state='normal')
+
+    def edit_exchange():
+        disabled_menu_buttons()
         dollar_entry.config(state='normal')
         euro_entry.config(state='normal')
         sterlin_entry.config(state='normal')
@@ -138,8 +148,7 @@ def create_settings_screen(app):
         edit_button.config(state="disabled")
 
     def save_exchange():
-        for name, btn in tab_buttons.items():
-            btn.config(state='normal')
+        enable_menu_buttons()
         dollar_entry.config(state='disabled')
         euro_entry.config(state='disabled')
         sterlin_entry.config(state='disabled')

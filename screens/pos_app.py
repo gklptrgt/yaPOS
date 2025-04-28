@@ -11,9 +11,8 @@ class POSApp:
     def __init__(self, root):
         self.db = MenuDatabase()
         self.root = root
-        self.root_width = 1366
-        self.root_height = 768
-        self.root.title("POS System")
+        self.root.title("yaPOS")
+        self.width = self.root.winfo_width()
 
         # Create frames for each screen
         self.frame_login = tk.Frame(root)
