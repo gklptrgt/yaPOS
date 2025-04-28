@@ -1,3 +1,5 @@
 /__pycache__
 screens/__pycache__
 /old.py
+widgets/__pycache__
+testing.py
