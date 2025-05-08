@@ -11,12 +11,39 @@ class MenuDatabase:
 
     def create_tables(self):
         self.connect()
+        
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
             background_color TEXT,
-            foreground_color TEXT
+            foreground_color TEXT)""")
+        
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS express (
+            item_id TEXT,
+            name TEXT,
+            price REAL,
+            qty INTEGER,
+            total_price REAL,
+            date TEXT)""")
+
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reports (
+            receipt_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            total_items INTEGER,
+            total_value REAL)""")
+        
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS report_items (
+            item_id TEXT,
+            receipt_id INTEGER,
+            name TEXT,
+            price REAL,
+            qty INTEGER,
+            total_price REAL,
+            FOREIGN KEY (receipt_id) REFERENCES reports(receipt_id)
         )
         """)
         self.cursor.execute("""
@@ -247,7 +274,31 @@ class MenuDatabase:
         result = self.cursor.fetchall()
         self.close()
         return result
+    def add_item_to_express(self, barcode, name, price, qty, total_price, date):
+        print("Added item to express", name)
+        self.connect()
+        self.cursor.execute('''
+            INSERT INTO express (item_id, name, price, qty, total_price, date)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (barcode, name, price, qty, total_price, date))
+        self.conn.commit()
+        self.conn.close()
+
+    def get_all_express(self):
+        self.connect()
+        query = """SELECT * FROM express"""
+        self.cursor.execute(query)
+        result = self.cursor.fetchall()
+        self.close()
+        
+        return result
     
+    def clear_express(self):
+        self.connect()
+        self.cursor.execute('DELETE FROM express')
+        self.conn.commit()
+        self.close()
+
     def update_menu_item(self, data):
         """
         Update a menu item in the database using barcode as the key.
