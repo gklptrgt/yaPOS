@@ -123,7 +123,7 @@ class MenuDatabase:
     def get_subcat_from_cat(self, cat_id):
         self.connect()
 
-        self.cursor.execute("SELECT name FROM subcategories WHERE category_id = ?", (cat_id,))
+        self.cursor.execute("SELECT id, name, background_color, foreground_color FROM subcategories WHERE category_id = ?", (cat_id,))
         result = self.cursor.fetchall()
         
         self.close()
@@ -153,6 +153,23 @@ class MenuDatabase:
         JOIN categories ON subcategories.category_id = categories.id
         """
         self.cursor.execute(query)
+        result = self.cursor.fetchall()
+        self.close()
+        return result
+    
+    def get_subcategory_menu_items(self, subcat):
+        self.connect()
+        
+        query = """
+        SELECT 
+            menu_items.barcode,
+            menu_items.name,
+            menu_items.price,
+            menu_items.background_color,
+            menu_items.foreground_color
+        FROM menu_items WHERE subcategory_id = ?
+        """
+        self.cursor.execute(query, (subcat,))
         result = self.cursor.fetchall()
         self.close()
         return result
@@ -271,4 +288,4 @@ class MenuDatabase:
 if __name__ == "__main__":
     db = MenuDatabase()
 
-    print(db.get_specific_menu_item("12313131231"))
+    print(db.get_subcategory_menu_items("1"))
