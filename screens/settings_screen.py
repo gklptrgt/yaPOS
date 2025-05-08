@@ -9,6 +9,12 @@ def create_settings_screen(app):
                 btn.config(bd=1, bg="#ffa962")
             else:
                 btn.config(bd=1, bg="#bfbfbf")
+    
+    # TODO: Add font we used to here.
+    title_font = ("Add font", 30, "bold")
+    label_font = ("Add font", 22)
+    entry_font = ("Add font", 22)
+    desc_font = ()
 
     app.frame_settings.grid_columnconfigure(0, weight=1)
     app.frame_settings.grid_columnconfigure(1, weight=9)
@@ -20,10 +26,8 @@ def create_settings_screen(app):
     right_frame = tk.Frame(app.frame_settings)
     right_frame.grid(row=0, column=1, sticky="nsew")
 
-    shop_page = tk.Frame(right_frame, bg='green')
+    shop_page = tk.Frame(right_frame)
     shop_page.grid(row=0, column=0, sticky="nsew")
-    label = tk.Label(shop_page, text="TAB: SHOP", font=("Arial", 24))
-    label.pack(expand=True)
 
     tables_page = tk.Frame(right_frame, bg='orange')
     tables_page.grid(row=0, column=0, sticky="nsew")
@@ -162,5 +166,84 @@ def create_settings_screen(app):
         dollar = float(app.dollar_var.get())
         sterlin = float(app.sterlin_var.get())
         app.db.update_exchange(euro=euro, dollar=dollar, sterlin=sterlin)
+
+    def edit_shop_info():
+        disabled_menu_buttons()
+        edit_button.config(state="normal")
+        shop_entry.config(state="normal")
+        address_entry.config(state="normal")
+        phone_entry.config(state="normal")
+        shop_save_button.config(state='normal')
+        shop_edit_button.config(state="disabled")
+
+    def save_shop_info():
+        enable_menu_buttons()
+        edit_button.config(state="disable")
+        shop_entry.config(state="disable")
+        address_entry.config(state="disable")
+        phone_entry.config(state="disable")
+        shop_save_button.config(state='disabled')
+        shop_edit_button.config(state="normal")
+        # retrieve information and update to database.
+
+
+    app.shop_name_var = tk.StringVar()
+    app.shop_adress_var = tk.StringVar()
+    app.shop_phone_var = tk.StringVar()
+
+    # TODO: Add the correct db operation here.
+    # euro, dollar, sterlin = app.db.get_exchange()
+    # if euro and dollar and sterlin:
+    #     app.shop_name_var.set(str(euro))
+    #     app.shop_adress_var.set(str(dollar))
+    #     app.shop_phone_var.set(str(sterlin))
+    # else:
+    #     app.shop_name_var.set("")
+    #     app.shop_adress_var.set("")
+    #     app.shop_phone_var.set("")
+
+
+    # Title
+    title_label = tk.Label(shop_page, text="Shop Information", font=("Helvetica", 16, "bold"))
+    title_label.pack(pady=(10, 5))
+
+    # Description
+    desc_label = tk.Label(shop_page, text="This information will be used while printing reciepts and in reports.")
+    desc_label.pack(pady=(0, 15))
+
+    # Form Frame
+    form_frame = tk.Frame(shop_page, padx=20)
+    form_frame.pack(fill='x')
+
+    # Shop Name
+    shop_label = tk.Label(form_frame, text="Shop Name:")
+    shop_label.grid(row=0, column=0, sticky='e', pady=5, padx=5)
+    shop_entry = tk.Entry(form_frame, width=30,state="disabled")
+    shop_entry.grid(row=0, column=1, pady=5)
+
+    # Address
+    address_label = tk.Label(form_frame, text="Address:")
+    address_label.grid(row=1, column=0, sticky='e', pady=5, padx=5)
+    address_entry = tk.Entry(form_frame, width=30,state="disabled")
+    address_entry.grid(row=1, column=1, pady=5)
+
+    # Phone Number
+    phone_label = tk.Label(form_frame, text="Phone Number:")
+    phone_label.grid(row=2, column=0, sticky='e', pady=5, padx=5)
+    phone_entry = tk.Entry(form_frame, width=30, state="disabled")
+    phone_entry.grid(row=2, column=1, pady=5)
+
+    # Buttons Frame
+    buttons_frame = tk.Frame(shop_page, pady=20)
+    buttons_frame.pack()
+
+
+    shop_edit_button = tk.Button(buttons_frame, text="Edit", width=10, command=edit_shop_info)
+    shop_edit_button.pack(side='left', padx=10)
+
+    shop_save_button = tk.Button(buttons_frame, text="Save", width=10,command=save_shop_info, state="disabled")
+    shop_save_button.pack(side='left', padx=10)
+
+
 
     show_frame(shop_page)
