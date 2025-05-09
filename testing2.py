@@ -10,6 +10,8 @@ from datetime import datetime
 def create_split_layout(root, mode):
     db = MenuDatabase()
 
+    opening_var = tk.StringVar()
+
 
     # Configure the root window to expand with resizing
     root.grid_rowconfigure(0, weight=1)
@@ -42,13 +44,21 @@ def create_split_layout(root, mode):
     bottom_right_frame = tk.Frame(right_frame, bg="#eba3b8")  # Darker pink
     bottom_right_frame.grid(row=2, column=0, sticky="nsew")
 
-    # Content for top_right_frame: vertically centered labels
-    express_label = tk.Label(top_right_frame, text="Express", font=("Arial", 12, "bold"), bg="#fce1e4")
-    express_label.pack(expand=True, fill="x")
-    opening_label = tk.Label(top_right_frame, text="Opening time", font=("Arial", 10), bg="#fce1e4")
-    opening_label.pack(expand=True, fill="x")
-    cashier_label = tk.Label(top_right_frame, text="Cashier", font=("Arial", 10), bg="#fce1e4")
-    cashier_label.pack(expand=True, fill="x")
+    title_label = tk.Label(top_right_frame, text="Express", font=("Arial", 25, "bold"), bg="#fce1e4")
+    title_label.grid(row=0, column=0, columnspan=2, sticky="n")
+
+    # Left-aligned Opening time
+    opening_label = tk.Label(top_right_frame, textvariable=opening_var, font=("Arial", 10), bg="#fce1e4")
+    opening_label.grid(row=1, column=0, sticky="w")
+
+    # Right-aligned Cashier
+    cashier_label = tk.Label(top_right_frame, text="Admin", font=("Arial", 10), bg="#fce1e4")
+    cashier_label.grid(row=1, column=1, sticky="e")
+
+    # Stretch columns so labels align to edges
+    top_right_frame.grid_columnconfigure(0, weight=1)
+    top_right_frame.grid_rowconfigure(0, weight=1)
+    top_right_frame.grid_rowconfigure(1, weight=1)
 
     # Content for middle_right_frame: Treeview with scrollbars
     tree_frame = tk.Frame(middle_right_frame, bg="#f4c7d2")
@@ -167,10 +177,23 @@ def create_split_layout(root, mode):
             item_price = float(item_data[4])
             item_total = no_items * item_price
             time_now = datetime.now().strftime("%H:%M")
+
             # ADD TO TREE
+
+            # Check db if data exists, in the express if so continue else, create the first new 
+            # opening time.
+            is_data = db.get_all_express()
+            if is_data:
+                db.add_item_to_express(item_barcode, item_name, item_price,no_items, item_total, time_now)
+            else:
+                # Fist item.
+                opening_time = datetime.now().strftime("%D %H:%M")
+                opening_var.set(f"Açılış: {opening_time}")
+                db.add_item_to_express(item_barcode,item_name, item_price,no_items, item_total, time_now, first=True, opening=opening_time)
+
             tree.insert("", "end", values=(time_now,no_items, item_name, item_price, item_total))#
-            db.add_item_to_express(item_barcode, item_name, item_price,no_items, item_total, time_now)
             update_prices()
+            
 
         # SQL Get Data from here.
         subcat_menu_items = db.get_subcategory_menu_items(subcat)
@@ -395,6 +418,7 @@ def create_split_layout(root, mode):
             var_total_dollar.set(f"$ 0")
             var_total_euro.set(f"€ 0")
             var_total_pounds.set(f"£ 0")
+            opening_var.set("Açılış:")
             
     # Configure top_sub_right_frame for entry and buttons
     top_sub_right_frame.grid_rowconfigure(0, weight=1)
@@ -440,26 +464,34 @@ def create_split_layout(root, mode):
     btn = tk.Button(top_sub_right_frame, text="X",font=("Impact",20 ), bg="#ff7967", command=clear_numpad)
     btn.grid(row=0, column=11, sticky="nsew", padx=2, pady=2)
 
+    
 
     if mode == "express":
         express_date = db.get_all_express()
         if express_date:
             total_in_tl = 0.0
-            for data in express_date:
-                item_name = data[1]
-                item_price = data[2]
-                item_qty = data[3]
-                item_total = data[4]
-                item_date = data[5]
+            for index, data in enumerate(express_date):
+                    
+                if data[1]:
+                    opening_var.set(f"Açılış: {data[1]}")
+
+                item_name = data[2]
+                item_price = data[3]
+                item_qty = data[4]
+                item_total = data[5]
+                item_date = data[6]
                 total_in_tl += item_total
                 tree.insert("", "end", values=(item_date,item_qty, item_name, item_price, item_total))#
+            
             update_prices()
 
         else:
+            # Means it's empty.
             var_total_tl.set(f"₺ 0")
             var_total_dollar.set(f"$ 0")
             var_total_euro.set(f"€ 0")
             var_total_pounds.set(f"£ 0")
+            opening_var.set("Açılış:")
                 
 
     

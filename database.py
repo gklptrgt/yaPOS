@@ -22,6 +22,7 @@ class MenuDatabase:
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS express (
             item_id TEXT,
+            opening TEXT,
             name TEXT,
             price REAL,
             qty INTEGER,
@@ -274,13 +275,20 @@ class MenuDatabase:
         result = self.cursor.fetchall()
         self.close()
         return result
-    def add_item_to_express(self, barcode, name, price, qty, total_price, date):
+    def add_item_to_express(self, barcode, name, price, qty, total_price, date, first=False, opening=None):
         print("Added item to express", name)
         self.connect()
-        self.cursor.execute('''
-            INSERT INTO express (item_id, name, price, qty, total_price, date)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (barcode, name, price, qty, total_price, date))
+        if first:
+            self.cursor.execute('''
+                INSERT INTO express (item_id, opening, name, price, qty, total_price, date)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (barcode, opening, name, price, qty, total_price, date))
+        else:
+
+            self.cursor.execute('''
+                INSERT INTO express (item_id, name, price, qty, total_price, date)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (barcode, name, price, qty, total_price, date))
         self.conn.commit()
         self.conn.close()
 
