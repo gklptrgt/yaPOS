@@ -19,11 +19,11 @@ def create_split_layout(root, mode):
     root.grid_columnconfigure(1, weight=20)  # Right side: 20%
 
     # Left frame (80% width, no border)
-    left_frame = tk.Frame(root, bg="#d3e3fc")
+    left_frame = tk.Frame(root)
     left_frame.grid(row=0, column=0, sticky="nsew")
 
     # Right frame (20% width, no border)
-    right_frame = tk.Frame(root, bg="#fce1e4")
+    right_frame = tk.Frame(root)
     right_frame.grid(row=0, column=1, sticky="nsew")
 
     # Configure right frame for 10%/60%/30% vertical split
@@ -33,15 +33,15 @@ def create_split_layout(root, mode):
     right_frame.grid_columnconfigure(0, weight=1)
 
     # Top sub-frame in right frame (10% height)
-    top_right_frame = tk.Frame(right_frame, bg="#fce1e4")  # Light pink
+    top_right_frame = tk.Frame(right_frame)  # Light pink
     top_right_frame.grid(row=0, column=0, sticky="nsew")
 
     # Middle sub-frame in right frame (60% height)
-    middle_right_frame = tk.Frame(right_frame, bg="#f4c7d2")  # Medium pink
+    middle_right_frame = tk.Frame(right_frame)  # Medium pink
     middle_right_frame.grid(row=1, column=0, sticky="nsew")
 
     # Bottom sub-frame in right frame (30% height)
-    bottom_right_frame = tk.Frame(right_frame, bg="#eba3b8")  # Darker pink
+    bottom_right_frame = tk.Frame(right_frame)  # Darker pink
     bottom_right_frame.grid(row=2, column=0, sticky="nsew")
 
     title_label = tk.Label(top_right_frame, text="Express", font=("Arial", 25, "bold"), bg="#fce1e4")
@@ -61,7 +61,7 @@ def create_split_layout(root, mode):
     top_right_frame.grid_rowconfigure(1, weight=1)
 
     # Content for middle_right_frame: Treeview with scrollbars
-    tree_frame = tk.Frame(middle_right_frame, bg="#f4c7d2")
+    tree_frame = tk.Frame(middle_right_frame)
     tree_frame.grid(row=0, column=0, sticky="nsew")
     middle_right_frame.grid_rowconfigure(0, weight=1)
     middle_right_frame.grid_columnconfigure(0, weight=1)
@@ -93,7 +93,7 @@ def create_split_layout(root, mode):
     tree_frame.grid_columnconfigure(0, weight=1)
 
     # Content for bottom_right_frame
-    bottom_right_content_frame = tk.Frame(bottom_right_frame, bg="#eba3b8")
+    bottom_right_content_frame = tk.Frame(bottom_right_frame)
     bottom_right_content_frame.grid(row=0, column=0, sticky="nsew")
     bottom_right_frame.grid_rowconfigure(0, weight=1)
     bottom_right_frame.grid_columnconfigure(0, weight=1)
@@ -131,7 +131,7 @@ def create_split_layout(root, mode):
 
     
 
-    main_frame = tk.Frame(left_frame, bg="#d3e3fc")
+    main_frame = tk.Frame(left_frame)
     main_frame.grid(row=1, column=0, sticky="nsew")
     # Configure main_frame for 10%/90% horizontal split
     main_frame.grid_rowconfigure(0, weight=1)
@@ -141,7 +141,7 @@ def create_split_layout(root, mode):
 
 
         # Right sub-frame (90% width, no border, no margin)
-    right_sub_frame = tk.Frame(main_frame, bg="#c3e3fc")
+    right_sub_frame = tk.Frame(main_frame)
     right_sub_frame.grid(row=0, column=1, sticky="nsew")
     # Configure right_sub_frame for top 10% and bottom 90%
     right_sub_frame.grid_rowconfigure(0, weight=1)
@@ -149,11 +149,11 @@ def create_split_layout(root, mode):
     right_sub_frame.grid_columnconfigure(0, weight=1)
 
     # Top frame in right_sub_frame (10% height)
-    top_sub_right_frame = tk.Frame(right_sub_frame, bg="#c3e3fc")
+    top_sub_right_frame = tk.Frame(right_sub_frame)
     top_sub_right_frame.grid(row=0, column=0, sticky="nsew")
 
     # Bottom frame in right_sub_frame (90% height, new color)
-    bottom_sub_right_frame = tk.Frame(right_sub_frame, bg="#d3f3fc")
+    bottom_sub_right_frame = tk.Frame(right_sub_frame)
     bottom_sub_right_frame.grid(row=1, column=0, sticky="nsew")
 
     def clear_old_items():
@@ -200,19 +200,19 @@ def create_split_layout(root, mode):
         num_subcat_menu_items = len(subcat_menu_items)
         # Calculate rows and columns for a roughly square grid
 
-        cols = math.ceil(math.sqrt(num_subcat_menu_items))
-        rows = math.ceil(num_subcat_menu_items / cols)
+        # cols = math.ceil(math.sqrt(num_subcat_menu_items))
+        # rows = math.ceil(num_subcat_menu_items / cols)
 
-        # Configure grid
-        for i in range(rows):
-            bottom_sub_right_frame.grid_rowconfigure(i, weight=1)
-        for j in range(cols):
-            bottom_sub_right_frame.grid_columnconfigure(j, weight=1)
+        # # Configure grid
+        # for i in range(rows):
+        #     bottom_sub_right_frame.grid_rowconfigure(i, weight=1)
+        # for j in range(cols):
+        #     bottom_sub_right_frame.grid_columnconfigure(j, weight=1)
 
         # Add rectangular buttons in a grid with dynamic font size and text wrapping
         for index, item in enumerate(subcat_menu_items):
-            row = index // cols
-            col = index % cols
+            row = index // 7
+            col = index % 7
 
             item_barcode = item[0]
             item_text = item[1]
@@ -220,12 +220,12 @@ def create_split_layout(root, mode):
             item_fg = item[4]
             print(item_fg,item_bg)
 
-            btn = CheckoutButton(master=bottom_sub_right_frame, text=item_text, width=10, height=2, command=lambda i=item_barcode: menu_item_pressed(i), bg=item_bg, fg=item_fg)
-            btn.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
+            btn = CheckoutButton(master=bottom_sub_right_frame, text=item_text, width=10, height=3, command=lambda i=item_barcode: menu_item_pressed(i), bg=item_bg, fg=item_fg)
+            btn.grid(row=row, column=col, padx=5, pady=5)
 
 
     # 2x3 button grid
-    button_grid_frame = tk.Frame(bottom_right_content_frame, bg="#eba3b8")
+    button_grid_frame = tk.Frame(bottom_right_content_frame)
     button_grid_frame.grid(row=1, column=0, columnspan=4, sticky="nsew")
 
     # Equalisers for grids.
@@ -264,7 +264,7 @@ def create_split_layout(root, mode):
 
 
     # Two bottom buttons (Pay and Close)
-    bottom_buttons_frame = tk.Frame(bottom_right_content_frame, bg="#eba3b8")
+    bottom_buttons_frame = tk.Frame(bottom_right_content_frame)
     bottom_buttons_frame.grid(row=2, column=0, columnspan=4, sticky="nsew")
     bottom_buttons_frame.grid_rowconfigure(0, weight=1)
     bottom_buttons_frame.grid_columnconfigure(0, weight=1)
@@ -285,7 +285,7 @@ def create_split_layout(root, mode):
     left_frame.grid_columnconfigure(0, weight=1)
 
     # Top button frame in left frame (10%)
-    button_frame = tk.Frame(left_frame, bg="#d3e3fc")
+    button_frame = tk.Frame(left_frame)
     button_frame.grid(row=0, column=0, sticky="nsew")
 
     # Configure button_frame to center buttons horizontally and stick to top
@@ -306,7 +306,7 @@ def create_split_layout(root, mode):
                 # generate_subcategories(subcat[0])
 
             # Left sub-frame (10% width, no border, no margin)
-            left_sub_frame = tk.Frame(main_frame, bg="#b3d3ec")
+            left_sub_frame = tk.Frame(main_frame)
             left_sub_frame.grid(row=0, column=0, sticky="nsew")
 
             # Configure left_sub_frame for vertical buttons

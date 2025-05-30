@@ -106,8 +106,9 @@ def create_add_item_screen(app, current_mode: str, barcode=None):
         selected_name = app.category_combobox.get()
         category_id = app.category_dict.get(selected_name)
         if category_id is not None:
+            # This is where it shows, subcategory names in combobox.
             subcat_data = app.db.get_subcat_from_cat(category_id)
-            subcategories = [row[0] for row in subcat_data]
+            subcategories = [row[1] for row in subcat_data]
             app.subcategory_combobox["values"] = subcategories
             app.subcategory_combobox.set("")
 
