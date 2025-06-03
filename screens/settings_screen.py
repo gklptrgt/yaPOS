@@ -11,10 +11,9 @@ def create_settings_screen(app):
                 btn.config(bd=1, bg="#bfbfbf")
     
     # TODO: Add font we used to here.
-    title_font = ("Add font", 30, "bold")
+    title_font = ("Arial", 30, "bold")
     label_font = ("Add font", 22)
     entry_font = ("Add font", 22)
-    desc_font = ()
 
     app.frame_settings.grid_columnconfigure(0, weight=1)
     app.frame_settings.grid_columnconfigure(1, weight=9)
@@ -36,8 +35,6 @@ def create_settings_screen(app):
 
     cat_page = tk.Frame(right_frame, bg='blue')
     cat_page.grid(row=0, column=0, sticky="nsew")
-    label = tk.Label(cat_page, text="TAB: CATEGORY", font=("Arial", 24))
-    label.pack(expand=True)
 
     subcat_page = tk.Frame(right_frame, bg='hotpink')
     subcat_page.grid(row=0, column=0, sticky="nsew")
@@ -245,5 +242,9 @@ def create_settings_screen(app):
     shop_save_button.pack(side='left', padx=10)
 
 
+
+    # Category Frame
+    cat_label = tk.Label(cat_page, text="Categories", font=title_font)
+    cat_label.pack(anchor="center", fill="both")
 
     show_frame(shop_page)

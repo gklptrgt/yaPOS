@@ -349,8 +349,8 @@ def create_split_layout(root, mode):
         def select_category(cat, btn):
             print("Selected Category:", cat)
             if selected_button['btn']:
-                selected_button['btn'].remove_border()
-            btn.add_border()
+                selected_button['btn'].configure(bg="gray",fg="black")
+            btn.configure(bg="purple", fg="white")
             selected_button['btn'] = btn
 
             # Call outside function to start for subcategories.
@@ -364,10 +364,9 @@ def create_split_layout(root, mode):
 
         for i, cat in enumerate(categories):
             title = cat[1]
-            bg = cat[2]
-            fg = cat[3]
+            bg = "gray"
 
-            btn = CheckoutButton(master=button_frame, text=title, bg=bg, fg=fg)
+            btn = CheckoutButton(master=button_frame, text=title, bg=bg)
             
             # Set command after btn is defined
             btn.config(command=lambda cat=cat, b=btn: select_category(cat, b))
@@ -382,6 +381,8 @@ def create_split_layout(root, mode):
 
 
     generate_categories()
+
+
 
 
     def convert_and_round(tl_amount, exchange_rate):
@@ -426,31 +427,40 @@ def create_split_layout(root, mode):
     for i in range(1, 12):
         top_sub_right_frame.grid_columnconfigure(i, weight=1)
 
-    # Numpad, Multipler
+
     def numpad_entrance(value):
-        # This is where a numpad button pressed it updates the screen
+        """
+        Function: A directional numpad for multiple entries.
+        1. When a number pressed it should copy that.
+        2. System always waits at 1, when a button is pressed it directly, addopts that.
+        - If its mask number than it should be gray, when a number is pressed,
+        it should be black again.
+
+        current_value: already existing value inside the entry.
+        value: newly pressed number on the numpad.
+        color: Turns the number to black to indicate its editing mode.
+        """
         current_value = multiplier_entry.get()
-        if len(current_value) > 4:
-            clear_numpad()
+
+        if current_value == "1" and entry.cget("fg")=="gray":
+            multiplier_entry.set(f"{value}")
+
+        elif current_value == "0":
+            multiplier_entry.set(value)
         else:
-            if current_value != "0":
-                if current_value == "1":
-                    if value == "0":
-                        multiplier_entry.set(f"{current_value}{value}")
-                    elif value == "1":
-                        multiplier_entry.set(f"{current_value}{value}")
-                    else:
-                        multiplier_entry.set(value)
-                else:
-                    multiplier_entry.set(f"{current_value}{value}")
-            else:
-                clear_numpad()
+            multiplier_entry.set(f"{current_value}{value}")
+
+        entry.configure(fg="black")
 
     def clear_numpad():
+        """
+        Function to clear the numpad to "1" and turns color to gray.
+        color: Turns to gray to indicate it's not in editing mode.
+        """
         multiplier_entry.set("1")
+        entry.configure(fg="gray")
     
     multiplier_entry = tk.StringVar()
-    clear_numpad()
     
     # Add Entry widget on the left
     entry = tk.Entry(top_sub_right_frame, font=("Impact", 20), width=5,  justify='center', textvariable=multiplier_entry)
@@ -465,6 +475,7 @@ def create_split_layout(root, mode):
     btn.grid(row=0, column=11, sticky="nsew", padx=2, pady=2)
 
     
+    clear_numpad()
 
     if mode == "express":
         express_date = db.get_all_express()
@@ -492,7 +503,12 @@ def create_split_layout(root, mode):
             var_total_euro.set(f"€ 0")
             var_total_pounds.set(f"£ 0")
             opening_var.set("Açılış:")
-                
+
+
+    # Data Loading from the database, populating the tree.
+    # Any item that is loaded from the database will be black color. except deleted ones.
+    # Any item added new will be green.
+    # Any item that is deleted will be red.
 
     
 # Create and run the application
