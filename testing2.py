@@ -109,7 +109,7 @@ def create_split_layout(root, mode):
         bottom_right_content_frame.grid_columnconfigure(j, weight=1)
 
 
-    font_style_1 = ("Calibri",16,"bold")
+    font_style_1 = ("Calibri",18,"bold")
     # TODO: This is where the calculations will be happened when a item is added.
     ### Exchange Rates Labels ###
     var_total_pounds = tk.StringVar()
@@ -463,15 +463,15 @@ def create_split_layout(root, mode):
     multiplier_entry = tk.StringVar()
     
     # Add Entry widget on the left
-    entry = tk.Entry(top_sub_right_frame, font=("Impact", 20), width=5,  justify='center', textvariable=multiplier_entry)
+    entry = tk.Entry(top_sub_right_frame, font=("Impact", 15), width=5,  justify='center', textvariable=multiplier_entry)
     entry.grid(row=0, column=0, sticky="nsew")
 
     # Add buttons 1-9 in a loop
     for i in range(0, 10):
-        btn = tk.Button(top_sub_right_frame, text=str(i),font=("Impact",20 ), bg="#a3c3fc", command=lambda i=i: numpad_entrance(str(i)))
+        btn = tk.Button(top_sub_right_frame, text=str(i),font=("Impact",15 ), bg="#a3c3fc", command=lambda i=i: numpad_entrance(str(i)))
         btn.grid(row=0, column=i+1, sticky="nsew", padx=2, pady=2)
 
-    btn = tk.Button(top_sub_right_frame, text="X",font=("Impact",20 ), bg="#ff7967", command=clear_numpad)
+    btn = tk.Button(top_sub_right_frame, text="X",font=("Impact",15 ), bg="#ff7967", command=clear_numpad)
     btn.grid(row=0, column=11, sticky="nsew", padx=2, pady=2)
 
     
